@@ -42,7 +42,13 @@ var cliStatusPage = cli.StringFlag{
 
 var cliTempFile = cli.StringFlag{
 	Name:   "tempfile, t",
-	Value:  "/tmp/mackerel-plugin-apache2",
+	Value:  "",
 	Usage:  "Set temporary file path.",
 	EnvVar: "ENVVAR_TEMPFILE",
+}
+
+var cliMetricKeyPrefix = cli.StringFlag{
+	Name:  "metric-key-prefix",
+	Value: "apache2",
+	Usage: "Metric Key Prefix",
 }
