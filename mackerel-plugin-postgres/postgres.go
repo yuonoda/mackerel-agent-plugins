@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"regexp"
 
 	_ "github.com/lib/pq"
 	mp "github.com/mackerelio/go-mackerel-plugin"
@@ -19,7 +20,12 @@ var graphdef = map[string](mp.Graphs){
 		Unit:  "integer",
 		Metrics: [](mp.Metrics){
 			mp.Metrics{Name: "active", Label: "Active", Diff: false, Stacked: true},
-			mp.Metrics{Name: "waiting", Label: "Waiting", Diff: false, Stacked: true},
+			mp.Metrics{Name: "active_waiting", Label: "Active waiting", Diff: false, Stacked: true},
+			mp.Metrics{Name: "idle", Label: "Idle", Diff: false, Stacked: true},
+			mp.Metrics{Name: "idle_in_transaction", Label: "Idle in transaction", Diff: false, Stacked: true},
+			mp.Metrics{Name: "idle_in_transaction_aborted_", Label: "Idle in transaction (aborted)", Diff: false, Stacked: true},
+			mp.Metrics{Name: "fastpath_function_call", Label: "fast-path function call", Diff: false, Stacked: true},
+			mp.Metrics{Name: "disabled", Label: "Disabled", Diff: false, Stacked: true},
 		},
 	},
 	"postgres.commits": mp.Graphs{
@@ -133,7 +139,7 @@ func fetchStatDatabase(db *sql.DB) (map[string]float64, error) {
 
 func fetchConnections(db *sql.DB) (map[string]float64, error) {
 	rows, err := db.Query(`
-		select count(*), waiting from pg_stat_activity group by waiting
+		select count(*), state, waiting from pg_stat_activity group by state, waiting
 	`)
 	if err != nil {
 		logger.Errorf("Failed to select pg_stat_activity. %s", err)
@@ -142,18 +148,20 @@ func fetchConnections(db *sql.DB) (map[string]float64, error) {
 
 	stat := make(map[string]float64)
 
+	normalize_re := regexp.MustCompile("[^a-zA-Z0-9_-]+")
 	for rows.Next() {
 		var count int
-		var waiting string
-		if err := rows.Scan(&count, &waiting); err != nil {
+		var waiting bool
+		var state string
+		if err := rows.Scan(&count, &state, &waiting); err != nil {
 			logger.Warningf("Failed to scan %s", err)
 			continue
 		}
-		if waiting != "" {
-			stat["active"] += float64(count)
-		} else {
-			stat["waiting"] += float64(count)
+		state = normalize_re.ReplaceAllString(state, "_")
+		if waiting {
+			state += "_waiting"
 		}
+		stat[state] = float64(count)
 	}
 
 	return stat, nil
