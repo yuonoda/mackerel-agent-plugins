@@ -1,5 +1,3 @@
-%define revision 1
-
 %define _binaries_in_noarch_packages_terminate_build   0
 
 %define __buildroot %{_builddir}/%{name}
@@ -8,7 +6,7 @@
 Summary: Monitoring program metric plugins for Mackerel
 Name: mackerel-agent-plugins
 Version: %{_version}
-Release: %{revision}
+Release: 1%{?dist}
 License: Apache-2
 Group: Applications/System
 URL: https://mackerel.io/
