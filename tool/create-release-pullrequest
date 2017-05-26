@@ -28,8 +28,7 @@ sub update_makefile {
     my ($current_version, $next_version) = @_;
     replace 'Makefile' => sub {
         my $content = shift;
-        my $cur_reg = '_version ' . quotemeta $current_version;
-        $content =~ s/$cur_reg/_version $next_version/g;
+        $content =~ s/^VERSION = .*?\n/VERSION = $next_version\n/ms;
         $content;
     };
 }

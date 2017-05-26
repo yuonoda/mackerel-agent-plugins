@@ -1,3 +1,4 @@
+VERSION = 0.27.1
 VERBOSE_FLAG = $(if $(VERBOSE),-verbose)
 CURRENT_REVISION = $(shell git rev-parse --short HEAD)
 
@@ -53,9 +54,9 @@ cover: testdeps
 
 rpm:
 	make build GOOS=linux GOARCH=386
-	rpmbuild --define "_sourcedir `pwd`"  --define "_version 0.27.1" --define "buildarch noarch" -bb packaging/rpm/mackerel-agent-plugins.spec
+	rpmbuild --define "_sourcedir `pwd`"  --define "_version ${VERSION}" --define "buildarch noarch" -bb packaging/rpm/mackerel-agent-plugins.spec
 	make build GOOS=linux GOARCH=amd64
-	rpmbuild --define "_sourcedir `pwd`"  --define "_version 0.27.1" --define "buildarch x86_64" -bb packaging/rpm/mackerel-agent-plugins.spec
+	rpmbuild --define "_sourcedir `pwd`"  --define "_version ${VERSION}" --define "buildarch x86_64" -bb packaging/rpm/mackerel-agent-plugins.spec
 
 deb:
 	make build GOOS=linux GOARCH=386
@@ -66,7 +67,7 @@ rpm-v2:
 	make build/mackerel-plugin GOOS=linux GOARCH=amd64
 	docker run --rm -v "$(PWD)":/workspace -v "$(PWD)/rpmbuild":/rpmbuild astj/mackerel-rpm-builder:c7 \
 	  --define "_sourcedir /workspace" \
-	  --define "_version ${CURRENT_VERSION}" --define "buildarch x86_64" \
+	  --define "_version ${VERSION}" --define "buildarch x86_64" \
 	  -bb packaging/rpm/mackerel-agent-plugins-v2.spec
 
 release: check-release-deps
