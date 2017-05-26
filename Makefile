@@ -58,17 +58,22 @@ rpm:
 	make build GOOS=linux GOARCH=amd64
 	rpmbuild --define "_sourcedir `pwd`"  --define "_version ${VERSION}" --define "buildarch x86_64" -bb packaging/rpm/mackerel-agent-plugins.spec
 
-deb:
-	make build GOOS=linux GOARCH=386
-	cp build/mackerel-plugin-* packaging/deb/debian/
-	cd packaging/deb && debuild --no-tgz-check -rfakeroot -uc -us
-
 rpm-v2:
 	make build/mackerel-plugin GOOS=linux GOARCH=amd64
 	docker run --rm -v "$(PWD)":/workspace -v "$(PWD)/rpmbuild":/rpmbuild astj/mackerel-rpm-builder:c7 \
 	  --define "_sourcedir /workspace" \
 	  --define "_version ${VERSION}" --define "buildarch x86_64" \
 	  -bb packaging/rpm/mackerel-agent-plugins-v2.spec
+
+deb:
+	make build GOOS=linux GOARCH=386
+	cp build/mackerel-plugin-* packaging/deb/debian/
+	cd packaging/deb && debuild --no-tgz-check -rfakeroot -uc -us
+
+deb-v2:
+	make build/mackerel-plugin GOOS=linux GOARCH=amd64
+	cp build/mackerel-plugin packaging/deb-v2/debian/
+	cd packaging/deb-v2 && debuild --no-tgz-check -rfakeroot -uc -us
 
 release: check-release-deps
 	(cd tool && cpanm -qn --installdeps .)

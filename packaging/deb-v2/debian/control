@@ -1,0 +1,9 @@
+Source: mackerel-agent-plugins
+Maintainer: Mackerel Developers <mackerel-developers@hatena.ne.jp>
+Section: misc
+Priority: optional
+Standards-Version: 3.9.2
+
+Package: mackerel-agent-plugins
+Architecture: amd64
+Description: plugins for Mackerel
