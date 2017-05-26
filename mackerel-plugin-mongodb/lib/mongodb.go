@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -284,12 +283,8 @@ func Do() {
 	if *optTempfile != "" {
 		helper.Tempfile = *optTempfile
 	} else {
-		helper.Tempfile = fmt.Sprintf("/tmp/mackerel-plugin-mongodb-%s-%s", *optHost, *optPort)
+		helper.SetTempfileByBasename(fmt.Sprintf("mackerel-plugin-mongodb-%s-%s", *optHost, *optPort))
 	}
 
-	if os.Getenv("MACKEREL_AGENT_PLUGIN_META") != "" {
-		helper.OutputDefinitions()
-	} else {
-		helper.OutputValues()
-	}
+	helper.Run()
 }

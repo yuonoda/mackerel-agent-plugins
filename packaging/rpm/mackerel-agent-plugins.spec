@@ -49,6 +49,14 @@ done
 %{__oldtargetdir}/*
 
 %changelog
+* Tue May 09 2017 <mackerel-developers@hatena.ne.jp> - 0.27.1-1
+- [php-fpm] Implement PluginWithPrefix interfarce (by astj)
+- Use SetTempfileByBasename to support MACKEREL_PLUGIN_WORKDIR (by astj)
+
+* Thu Apr 27 2017 <mackerel-developers@hatena.ne.jp> - 0.27.0-1
+- Add uWSGI vassal plugin (by kizkoh)
+- add mackerel-plugin-uwsgi-vassal to package (by astj)
+
 * Wed Apr 19 2017 <mackerel-developers@hatena.ne.jp> - 0.26.0-1
 - Add AWS Rekognition Plugin (by holidayworking)
 - Add aws-kinesis-streams plugin (by astj)

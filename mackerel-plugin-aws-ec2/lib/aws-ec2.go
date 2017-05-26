@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -184,12 +183,8 @@ func Do() {
 	if *optTempfile != "" {
 		helper.Tempfile = *optTempfile
 	} else {
-		helper.Tempfile = fmt.Sprintf("/tmp/mackerel-plugin-aws-ec2-%s", ec2.InstanceID)
+		helper.SetTempfileByBasename(fmt.Sprintf("mackerel-plugin-aws-ec2-%s", ec2.InstanceID))
 	}
 
-	if os.Getenv("MACKEREL_AGENT_PLUGIN_META") != "" {
-		helper.OutputDefinitions()
-	} else {
-		helper.OutputValues()
-	}
+	helper.Run()
 }

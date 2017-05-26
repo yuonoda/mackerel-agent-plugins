@@ -1,3 +1,21 @@
+mackerel-agent-plugins (0.27.1-1) stable; urgency=low
+
+  * [php-fpm] Implement PluginWithPrefix interfarce (by astj)
+    <https://github.com/mackerelio/mackerel-agent-plugins/pull/338>
+  * Use SetTempfileByBasename to support MACKEREL_PLUGIN_WORKDIR (by astj)
+    <https://github.com/mackerelio/mackerel-agent-plugins/pull/339>
+
+ -- mackerel <mackerel-developers@hatena.ne.jp>  Tue, 09 May 2017 06:17:02 +0000
+
+mackerel-agent-plugins (0.27.0-1) stable; urgency=low
+
+  * Add uWSGI vassal plugin (by kizkoh)
+    <https://github.com/mackerelio/mackerel-agent-plugins/pull/335>
+  * add mackerel-plugin-uwsgi-vassal to package (by astj)
+    <https://github.com/mackerelio/mackerel-agent-plugins/pull/336>
+
+ -- mackerel <mackerel-developers@hatena.ne.jp>  Thu, 27 Apr 2017 03:05:50 +0000
+
 mackerel-agent-plugins (0.26.0-1) stable; urgency=low
 
   * Add AWS Rekognition Plugin (by holidayworking)
