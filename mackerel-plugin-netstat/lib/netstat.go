@@ -9,12 +9,10 @@ import (
 	"strings"
 
 	mp "github.com/mackerelio/go-mackerel-plugin-helper"
-	"github.com/serenize/snaker"
 )
 
 // NetstatPlugin mackerel plugin for netstat
 type NetstatPlugin struct {
-	Path   string
 	Prefix string
 }
 
@@ -170,8 +168,8 @@ func (m NetstatPlugin) GraphDefinition() map[string]mp.Graphs {
 			Label: (labelPrefix + " TcpExt"),
 			Unit:  "float",
 			Metrics: []mp.Metrics{
-				{Name: "tcp_hp_acks", Label: "TCP HP Acks"},
-				{Name: "tcp_hp_hits", Label: "CGO Call Num"},
+				{Name: "tcphp_acks", Label: "TCP HP Acks"},
+				{Name: "tcphp_hits", Label: "CGO Call Num"},
 			},
 		},
 		"IpExt": {
@@ -187,44 +185,51 @@ func (m NetstatPlugin) GraphDefinition() map[string]mp.Graphs {
 
 // FetchMetrics interface for mackerelplugin
 func (m NetstatPlugin) FetchMetrics() (map[string]interface{}, error) {
-	f, err := os.Open("/proc/net/netstat")
+	f, err := os.Open("/tmp/netstat")
 	if err != nil {
 		return make(map[string]interface{}), err
 	}
 	defer f.Close()
 
 	stat := make(map[string]interface{})
-	metric := make(map[string]bool)
+	metrics := make(map[string]map[string][]string)
 
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		rep := regexp.MustCompile(`:\s+`)
-		arr := rep.Split(scanner.Text(), 1)
+		arr := rep.Split(scanner.Text(), 2)
 		category := arr[0]
 		content := arr[1]
 
-		var keys, vals []string
-		if _, ok := metric[category]; ok {
-			vals = strings.Split(content, " ")
+		if _, ok := metrics[category]; ok {
+			rep := regexp.MustCompile(`\s+`)
+			vals := rep.Split(content, -1)
+			metrics[category]["vals"] = vals
 		} else {
-			keys = strings.Split(snaker.CamelToSnake(content), " ")
-			metric[category] = true
+			metrics[category] = make(map[string][]string)
+			rep := regexp.MustCompile(`\s+`)
+			keys := rep.Split(content, -1)
+			metrics[category]["keys"] = keys
 		}
-
-		newStat, err := m.zipStat(keys, vals)
-		if err != nil {
-			return nil, err
-		}
-		mergeStat(stat, newStat)
 	}
 	if serr := scanner.Err(); serr != nil {
 		return make(map[string]interface{}), err
 	}
 
+	for _, metric := range metrics {
+		newStat, err := zipMetric(metric["keys"], metric["vals"])
+		if err != nil {
+			return nil, err
+		}
+
+		mergeStat(stat, newStat)
+	}
+
+	// log.Printf("%+v", stat)
 	return stat, err
 }
 
-func (m NetstatPlugin) zipStat(keys, vals []string) (map[string]interface{}, error) {
+func zipMetric(keys, vals []string) (map[string]interface{}, error) {
 	stat := make(map[string]interface{})
 
 	if len(keys) != len(vals) {
@@ -232,7 +237,7 @@ func (m NetstatPlugin) zipStat(keys, vals []string) (map[string]interface{}, err
 	}
 
 	for i, v := range vals {
-		stat[keys[i]] = v
+		stat[camelToSnake(keys[i])] = v
 	}
 
 	return stat, nil
@@ -244,15 +249,27 @@ func mergeStat(dst, src map[string]interface{}) {
 	}
 }
 
+func camelToSnake(s string) string {
+	camel := regexp.MustCompile("(^[^A-Z]*|[A-Z]*)([A-Z][^A-Z]+|$)")
+	var a []string
+	for _, sub := range camel.FindAllStringSubmatch(s, -1) {
+		if sub[1] != "" {
+			a = append(a, sub[1])
+		}
+		if sub[2] != "" {
+			a = append(a, sub[2])
+		}
+	}
+	return strings.ToLower(strings.Join(a, "_"))
+}
+
 // Do the plugin
 func Do() {
-	optPath := flag.String("path", "/tmp/mackerel-plugin-netstat.json", "Path")
 	optPrefix := flag.String("metric-key-prefix", "netstat", "Metric key prefix")
 	optTempfile := flag.String("tempfile", "", "Temp file name")
 	flag.Parse()
 
 	var netstat NetstatPlugin
-	netstat.Path = *optPath
 	netstat.Prefix = *optPrefix
 
 	helper := mp.NewMackerelPlugin(netstat)
